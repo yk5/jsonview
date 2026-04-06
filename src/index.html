@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Viewer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+  /* ── Variables ─────────────────────────────────── */
+  :root {
+    --bg:               #0e0f13;
+    --surface:          #16171d;
+    --surface2:         #1e1f27;
+    --border:           #2a2b35;
+    --text:             #c9cad4;
+    --text-dim:         #6b6d7b;
+
+    --accent:           #6ee7b7;
+    --accent-dim:       rgba(110,231,183,0.08);
+    --accent-hover:     rgba(110,231,183,0.18);
+    --accent-border:    rgba(110,231,183,0.25);
+
+    --type-string:  #7dd3fc;
+    --type-number:  #c4b5fd;
+    --type-bool:    #fca5a5;
+    --type-null:    #6b6d7b;
+    --type-obj:     #6ee7b7;
+    --type-arr:     #fdba74;
+
+    --radius: 6px;
+    --mono:   'IBM Plex Mono', monospace;
+    --sans:   'DM Sans', sans-serif;
+  }
+
+  /* ── Reset ──────────────────────────────────────── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ── Base layout ────────────────────────────────── */
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header & toolbar ───────────────────────────── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+  }
+
+  header h1 span { color: var(--text-dim); font-weight: 400; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  /* ── Buttons & inputs ───────────────────────────── */
+  button, label.file-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  button:hover, label.file-btn:hover {
+    border-color: var(--accent-border);
+    background: var(--accent-hover);
+    color: var(--accent);
+  }
+
+  button:disabled {
+    opacity: 0.35;
+    cursor: default;
+    border-color: var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+  }
+
+  input[type="file"] { display: none; }
+
+  .level-group {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .level-input {
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 100px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-right: none;
+    border-radius: var(--radius) 0 0 var(--radius);
+    background: var(--surface2);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .level-input:focus { border-color: var(--accent-border); }
+  .level-input::placeholder { color: var(--text-dim); }
+
+  .btn-levels {
+    border-radius: 0 var(--radius) var(--radius) 0;
+    border-left: none;
+  }
+
+  .level-group:focus-within .level-input,
+  .level-group:focus-within .btn-levels {
+    border-color: var(--accent-border);
+  }
+
+  /* ── Panels ─────────────────────────────────────── */
+  .panels {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .panel + .panel { border-left: 1px solid var(--border); }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow: auto;
+    padding: 12px 8px;
+  }
+
+  .panel-body::-webkit-scrollbar       { width: 6px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── Resizer ─────────────────────────────────────── */
+  .resizer {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .resizer:hover, .resizer.active { background: var(--accent-border); }
+
+  /* ── Tree nodes ──────────────────────────────────── */
+  .node { position: relative; }
+
+  .node-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 2px 6px 2px calc(var(--depth, 0) * 18px + 6px);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.1s;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: nowrap;
+  }
+
+  .node-row:hover  { background: var(--surface2); }
+  .node-row.dimmed { opacity: 0.3; }
+
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--text-dim);
+    font-size: 10px;
+    transition: transform 0.15s;
+    user-select: none;
+  }
+
+  .toggle.folded { transform: rotate(-90deg); }
+  .toggle.leaf      { visibility: hidden; }
+
+  .key    { color: var(--text); }
+  .colon  { color: var(--text-dim); margin-right: 4px; }
+  .bracket { color: var(--text-dim); }
+  .count  { color: var(--text-dim); font-size: 11px; margin-left: 4px; }
+
+  .type-tag {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .t-string  { color: var(--type-string); background: rgba(125,211,252,0.08); }
+  .t-number  { color: var(--type-number); background: rgba(196,181,253,0.08); }
+  .t-boolean { color: var(--type-bool);   background: rgba(252,165,165,0.08); }
+  .t-null    { color: var(--type-null);   background: rgba(107,109,123,0.10); }
+  .t-object  { color: var(--type-obj);    background: rgba(110,231,183,0.08); }
+  .t-array   { color: var(--type-arr);    background: rgba(253,186,116,0.08); }
+
+  .value     { margin-left: 2px; }
+  .v-string  { color: var(--type-string); }
+  .v-number  { color: var(--type-number); }
+  .v-boolean { color: var(--type-bool); }
+  .v-null    { color: var(--type-null); font-style: italic; }
+
+  .children        { overflow: hidden; }
+  .children.hidden { display: none; }
+
+  /* ── Empty state ─────────────────────────────────── */
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 13px;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  /* ── Editor modal ────────────────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: min(90vw, 720px);
+    height: min(80vh, 600px);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(12px);
+    transition: transform 0.2s;
+    overflow: hidden;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .modal-bar span {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .modal-bar .modal-actions { display: flex; gap: 8px; }
+
+  .modal-error {
+    padding: 0 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--type-bool);
+    height: 24px;
+    line-height: 24px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .editor-wrap {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .editor-lines {
+    padding: 12px 8px 12px 0;
+    width: 48px;
+    flex-shrink: 0;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .editor-area {
+    flex: 1;
+    resize: none;
+    border: none;
+    outline: none;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 12px 16px;
+    tab-size: 2;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+  }
+
+  .btn-apply {
+    padding: 6px 14px;
+    border-color: var(--accent-border);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .btn-apply:hover { background: var(--accent-hover); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>{} <span>json viewer</span></h1>
+  <div class="toolbar">
+    <label class="file-btn">
+      Load
+      <input type="file" id="fileInput" accept=".json,application/json">
+    </label>
+    <button id="btnEdit">Edit</button>
+    <button id="btnFold" disabled style="white-space:normal;line-height:1.3;text-align:center;width:42px;">Fold<br>All</button>
+    <button id="btnExpand" disabled style="white-space:normal;line-height:1.3;text-align:center;width:48px;">Expand<br>All</button>
+    <div class="level-group">
+      <input class="level-input" id="levelInput" placeholder="e.g. 0-2,4" disabled>
+      <button id="btnLevels" class="btn-levels" disabled>Set Levels</button>
+    </div>
+  </div>
+</header>
+
+<div class="panels">
+  <div class="panel" id="schemaPanel">
+    <div class="panel-header">Schema</div>
+    <div class="panel-body" id="schemaTree">
+      <div class="empty-state">Load a JSON file<br>to view its schema</div>
+    </div>
+  </div>
+  <div class="resizer" id="resizer"></div>
+  <div class="panel" id="dataPanel">
+    <div class="panel-header">Data</div>
+    <div class="panel-body" id="dataTree">
+      <div class="empty-state">Load a JSON file<br>to view its contents</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editorOverlay">
+  <div class="modal">
+    <div class="modal-bar">
+      <span>Edit JSON</span>
+      <div class="modal-actions">
+        <button id="btnFormat">Format</button>
+        <button id="btnApply" class="btn-apply">Apply</button>
+        <button id="btnCancel">Cancel</button>
+      </div>
+    </div>
+    <div class="modal-error" id="editorError"></div>
+    <div class="editor-wrap">
+      <div class="editor-lines" id="editorLines"></div>
+      <textarea class="editor-area" id="editorArea" spellcheck="false"></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────
+let schemaNodes = new Map();   // path → { el, childrenEl, depth, isContainer, path }
+let dataNodes   = new Map();   // path → { el, childrenEl, depth, isContainer, path }
+let currentJson = undefined;
+let activeLevels = null;       // Set<number> | null
+
+// ── Utilities ────────────────────────────────────────
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function dataPathToSchemaPath(path) {
+  return path.replace(/\[\d+\]/g, "[]");
+}
+
+function typeClass(t) {
+  const map = { string: "t-string", number: "t-number", boolean: "t-boolean", null: "t-null", object: "t-object", array: "t-array" };
+  return map[t] || "";
+}
+
+function valueClass(t) {
+  const map = { string: "v-string", number: "v-number", boolean: "v-boolean", null: "v-null" };
+  return map[t] || "";
+}
+
+// ── Schema inference ─────────────────────────────────
+function inferSchema(value, path = "$", depth = 0) {
+  if (value === null)        return { type: "null",   path, depth };
+  if (Array.isArray(value)) {
+    const node = { type: "array", path, depth };
+    if (value.length > 0) {
+      node.items = inferSchema(value[0], path + "[]", depth + 1);
+      for (let i = 1; i < Math.min(value.length, 20); i++) {
+        mergeSchema(node.items, inferSchema(value[i], path + "[]", depth + 1));
+      }
+    }
+    return node;
+  }
+  if (typeof value === "object") {
+    const node = { type: "object", path, depth, children: {} };
+    for (const k of Object.keys(value)) {
+      node.children[k] = inferSchema(value[k], path + "." + k, depth + 1);
+    }
+    return node;
+  }
+  return { type: typeof value, path, depth };
+}
+
+function mergeSchema(target, source) {
+  if (target.type !== source.type) return;
+  if (source.children) {
+    if (!target.children) target.children = {};
+    for (const k of Object.keys(source.children)) {
+      if (target.children[k]) mergeSchema(target.children[k], source.children[k]);
+      else target.children[k] = source.children[k];
+    }
+  }
+  if (source.items) {
+    if (target.items) mergeSchema(target.items, source.items);
+    else target.items = source.items;
+  }
+}
+
+// ── Tree rendering ───────────────────────────────────
+function renderSchemaTree(container, schema, key) {
+  const isContainer = schema.type === "object" || schema.type === "array";
+  const div = document.createElement("div");
+  div.className = "node";
+
+  const row = document.createElement("div");
+  row.className = "node-row";
+  row.style.setProperty("--depth", String(schema.depth));
+  row.dataset.schemaPath = schema.path;
+  row.dataset.container  = isContainer ? "1" : "0";
+
+  const toggleSpan = document.createElement("span");
+  toggleSpan.className = "toggle" + (isContainer ? "" : " leaf");
+  toggleSpan.textContent = "▼";
+
+  let label = "";
+  if (key !== undefined) label += `<span class="key">${escapeHtml(key)}</span><span class="colon">:</span>`;
+  label += `<span class="type-tag ${typeClass(schema.type)}">${schema.type}</span>`;
+
+  row.appendChild(toggleSpan);
+  row.insertAdjacentHTML("beforeend", label);
+  div.appendChild(row);
+
+  let childrenDiv = null;
+  if (isContainer) {
+    childrenDiv = document.createElement("div");
+    childrenDiv.className = "children";
+    if (schema.children) {
+      for (const [k, v] of Object.entries(schema.children)) renderSchemaTree(childrenDiv, v, k);
+    }
+    if (schema.items) renderSchemaTree(childrenDiv, schema.items, "[]");
+    div.appendChild(childrenDiv);
+
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleNode(toggleSpan, childrenDiv);
+    });
+  }
+
+  schemaNodes.set(schema.path, { el: row, childrenEl: childrenDiv, path: schema.path, depth: schema.depth, isContainer });
+  container.appendChild(div);
+}
+
+function renderDataTree(container, value, path = "$", depth = 0, key) {
+  const type = value === null ? "null" : Array.isArray(value) ? "array" : typeof value;
+  const isContainer = type === "object" || type === "array";
+  const div = document.createElement("div");
+  div.className = "node";
+
+  const row = document.createElement("div");
+  row.className = "node-row";
+  row.style.setProperty("--depth", String(depth));
+  row.dataset.path       = path;
+  row.dataset.schemaPath = dataPathToSchemaPath(path);
+  row.dataset.container  = isContainer ? "1" : "0";
+
+  const toggleSpan = document.createElement("span");
+  toggleSpan.className = "toggle" + (isContainer ? "" : " leaf");
+  toggleSpan.textContent = "▼";
+
+  let label = "";
+  if (key !== undefined) label += `<span class="key">${escapeHtml(key)}</span><span class="colon">:</span>`;
+
+  if (isContainer) {
+    const count   = type === "array" ? value.length : Object.keys(value).length;
+    const [open]  = type === "array" ? ["[", "]"] : ["{", "}"];
+    const unit    = type === "array" ? "items" : "keys";
+    label += `<span class="bracket">${open}</span><span class="count">${count} ${unit}</span>`;
+  } else {
+    const display = type === "string" ? `"${escapeHtml(String(value))}"` : String(value);
+    label += `<span class="value ${valueClass(type)}">${display}</span>`;
+  }
+
+  row.appendChild(toggleSpan);
+  row.insertAdjacentHTML("beforeend", label);
+  div.appendChild(row);
+
+  let childrenDiv = null;
+  if (isContainer) {
+    childrenDiv = document.createElement("div");
+    childrenDiv.className = "children";
+    if (type === "array") {
+      value.forEach((item, i) => renderDataTree(childrenDiv, item, `${path}[${i}]`, depth + 1, String(i)));
+    } else {
+      for (const [k, v] of Object.entries(value)) renderDataTree(childrenDiv, v, `${path}.${k}`, depth + 1, k);
+    }
+    div.appendChild(childrenDiv);
+
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleNode(toggleSpan, childrenDiv);
+    });
+  }
+
+  dataNodes.set(path, { el: row, childrenEl: childrenDiv, path, depth, isContainer });
+  container.appendChild(div);
+}
+
+// ── Fold / expand ────────────────────────────────────
+function toggleNode(toggle, children) {
+  const folded = !children.classList.contains("hidden");
+  children.classList.toggle("hidden", folded);
+  toggle.classList.toggle("folded", folded);
+
+  if (folded || !activeLevels) return;
+
+  for (const child of children.children) {
+    if (!child.classList.contains("node")) continue;
+    child.style.display = "";
+    const childRow = child.querySelector(":scope > .node-row");
+    if (childRow) {
+      const d = parseInt(childRow.style.getPropertyValue("--depth"), 10);
+      childRow.classList.toggle("dimmed", !activeLevels.has(d));
+    }
+  }
+}
+
+function setAllExpanded(nodes, expanded) {
+  activeLevels = null;
+  nodes.forEach(n => {
+    n.el.classList.remove("dimmed");
+    const wrapper = n.el.parentElement;
+    if (wrapper?.classList.contains("node")) wrapper.style.display = "";
+    if (n.childrenEl) {
+      n.childrenEl.classList.toggle("hidden", !expanded);
+      n.el.querySelector(".toggle")?.classList.toggle("folded", !expanded);
+    }
+  });
+}
+
+// ── Level filtering ──────────────────────────────────
+function parseLevels(input) {
+  const levels = new Set();
+  for (const part of input.split(",")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const range = trimmed.split("-").map(s => parseInt(s.trim(), 10));
+    if (range.length === 1 && !isNaN(range[0])) {
+      levels.add(range[0]);
+    } else if (range.length === 2 && !isNaN(range[0]) && !isNaN(range[1])) {
+      for (let i = range[0]; i <= range[1]; i++) levels.add(i);
+    }
+  }
+  return levels;
+}
+
+function isAncestorPath(parent, child) {
+  if (!child.startsWith(parent) || child === parent) return false;
+  const next = child[parent.length];
+  return next === "." || next === "[";
+}
+
+function applyLevels(nodes, levels) {
+  activeLevels = levels;
+
+  const activePaths = new Set();
+  nodes.forEach((n, path) => { if (levels.has(n.depth)) activePaths.add(path); });
+
+  const ancestorPaths = new Set();
+  nodes.forEach((n, path) => {
+    if (!n.childrenEl) return;
+    for (const ap of activePaths) {
+      if (isAncestorPath(path, ap)) { ancestorPaths.add(path); break; }
+    }
+  });
+
+  nodes.forEach((n, path) => {
+    const isActive   = activePaths.has(path);
+    const isAncestor = ancestorPaths.has(path);
+    const isVisible  = isActive || isAncestor;
+
+    n.el.classList.toggle("dimmed", isAncestor && !isActive);
+
+    if (n.childrenEl) {
+      n.childrenEl.classList.toggle("hidden", !isAncestor);
+      n.el.querySelector(".toggle")?.classList.toggle("folded", !isAncestor);
+    }
+
+    const wrapper = n.el.parentElement;
+    if (wrapper?.classList.contains("node")) wrapper.style.display = isVisible ? "" : "none";
+  });
+}
+
+// ── Resizer ──────────────────────────────────────────
+function initResizer() {
+  const resizer     = document.getElementById("resizer");
+  const schemaPanel = document.getElementById("schemaPanel");
+  let startX, startW;
+
+  resizer.addEventListener("mousedown", (e) => {
+    startX = e.clientX;
+    startW = schemaPanel.getBoundingClientRect().width;
+    resizer.classList.add("active");
+
+    const onMove = (e) => {
+      schemaPanel.style.flex  = "none";
+      schemaPanel.style.width = Math.max(200, startW + (e.clientX - startX)) + "px";
+    };
+    const onUp = () => {
+      resizer.classList.remove("active");
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  });
+}
+
+// ── Load JSON ────────────────────────────────────────
+function loadJson(json, schemaContainer, dataContainer) {
+  schemaNodes.clear();
+  dataNodes.clear();
+  activeLevels = null;
+  schemaContainer.innerHTML = "";
+  dataContainer.innerHTML   = "";
+  renderSchemaTree(schemaContainer, inferSchema(json));
+  renderDataTree(dataContainer, json);
+}
+
+// ── Init ─────────────────────────────────────────────
+function init() {
+  const fileInput  = document.getElementById("fileInput");
+  const schemaTree = document.getElementById("schemaTree");
+  const dataTree   = document.getElementById("dataTree");
+
+  const btnFold    = document.getElementById("btnFold");
+  const btnExpand  = document.getElementById("btnExpand");
+  const levelInput = document.getElementById("levelInput");
+  const btnLevels  = document.getElementById("btnLevels");
+
+  const overlay     = document.getElementById("editorOverlay");
+  const editorArea  = document.getElementById("editorArea");
+  const editorLines = document.getElementById("editorLines");
+  const editorError = document.getElementById("editorError");
+  const btnEdit     = document.getElementById("btnEdit");
+  const btnApply    = document.getElementById("btnApply");
+  const btnCancel   = document.getElementById("btnCancel");
+  const btnFormat   = document.getElementById("btnFormat");
+
+  initResizer();
+
+  function enableControls() {
+    [btnFold, btnExpand, btnLevels, levelInput].forEach(el => el.disabled = false);
+  }
+
+  btnFold.addEventListener("click",   () => { setAllExpanded(schemaNodes, false); setAllExpanded(dataNodes, false); });
+  btnExpand.addEventListener("click", () => { setAllExpanded(schemaNodes, true);  setAllExpanded(dataNodes, true);  });
+
+  btnLevels.addEventListener("click", () => {
+    const levels = parseLevels(levelInput.value);
+    if (levels.size === 0) return;
+    applyLevels(schemaNodes, levels);
+    applyLevels(dataNodes, levels);
+  });
+
+  levelInput.addEventListener("keydown", (e) => { if (e.key === "Enter") btnLevels.click(); });
+
+  // ── File loading ──
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const json = JSON.parse(reader.result);
+        currentJson = json;
+        loadJson(json, schemaTree, dataTree);
+        enableControls();
+      } catch {
+        schemaTree.innerHTML = '<div class="empty-state">Invalid JSON</div>';
+        dataTree.innerHTML   = '<div class="empty-state">Invalid JSON</div>';
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // ── Editor modal ──
+  function updateLineNumbers() {
+    const count = editorArea.value.split("\n").length;
+    editorLines.innerHTML = Array.from({ length: count }, (_, i) => `<div>${i + 1}</div>`).join("");
+  }
+
+  function openEditor() {
+    editorError.textContent = "";
+    editorArea.value = currentJson !== undefined ? JSON.stringify(currentJson, null, 2) : '{\n  \n}';
+    updateLineNumbers();
+    overlay.classList.add("open");
+    requestAnimationFrame(() => {
+      editorArea.focus();
+      if (currentJson === undefined) editorArea.selectionStart = editorArea.selectionEnd = 4;
+    });
+  }
+
+  function closeEditor() { overlay.classList.remove("open"); }
+
+  btnEdit.addEventListener("click",   openEditor);
+  btnCancel.addEventListener("click", closeEditor);
+  overlay.addEventListener("click",  (e) => { if (e.target === overlay) closeEditor(); });
+
+  editorArea.addEventListener("input",  updateLineNumbers);
+  editorArea.addEventListener("scroll", () => { editorLines.scrollTop = editorArea.scrollTop; });
+
+  btnFormat.addEventListener("click", () => {
+    try {
+      editorArea.value = JSON.stringify(JSON.parse(editorArea.value), null, 2);
+      editorError.textContent = "";
+      updateLineNumbers();
+    } catch (err) {
+      editorError.textContent = "⚠ " + err.message;
+    }
+  });
+
+  btnApply.addEventListener("click", () => {
+    try {
+      currentJson = JSON.parse(editorArea.value);
+      loadJson(currentJson, schemaTree, dataTree);
+      enableControls();
+      closeEditor();
+    } catch (err) {
+      editorError.textContent = "⚠ " + err.message;
+    }
+  });
+
+  editorArea.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const s = editorArea.selectionStart;
+      editorArea.value = editorArea.value.substring(0, s) + "  " + editorArea.value.substring(editorArea.selectionEnd);
+      editorArea.selectionStart = editorArea.selectionEnd = s + 2;
+      updateLineNumbers();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") btnApply.click();
+  });
+}
+
+init();
+</script>
+</body>
+</html>
