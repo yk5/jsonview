@@ -2,7 +2,7 @@
 
 A single-file, zero-dependency JSON viewer that runs in the browser. It renders any JSON file as an interactive tree with a side-by-side schema inference panel.
 
-The live version can be seen in https://yk5.github.io/jsonview/
+The live version can be seen in https://yk5.github.io/jsonview/src/
 
 ## Features
 
@@ -17,6 +17,7 @@ The live version can be seen in https://yk5.github.io/jsonview/
   - Inline parse error display
   - `Tab` key indentation support
   - `Ctrl`/`Cmd` + `Enter` to apply
+- **Module system** — Extend the viewer with custom JavaScript modules (see [Modules](/docs/modules.md))
 - **Resizable panels** — Drag the divider between Schema and Data panels
 - **Dark theme** — Dark UI with syntax-colored type tags (string, number, boolean, null, object, array)
 
