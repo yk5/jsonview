@@ -2,7 +2,7 @@
 
 A single-file, zero-dependency JSON viewer that runs in the browser. It renders any JSON file as an interactive tree with a side-by-side schema inference panel.
 
-The live version can be seen in https://yk5.github.io/jsonview/src/
+The live version can be seen in [https://yk5.github.io/jsonview/src/](https://yk5.github.io/jsonview/src/).
 
 ## Features
 

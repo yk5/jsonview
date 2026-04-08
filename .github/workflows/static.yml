@@ -42,10 +42,16 @@ jobs:
           cp -r docs/ _site/
           cp -r src/ _site/
 
+      - name: Build from the staged site by Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: "./_site/"
+          destination: "./_built"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
+          path: './_built'
 
       - name: Deploy to GitHub Pages
         id: deployment
