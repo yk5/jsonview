@@ -6,6 +6,7 @@ Click **Modules** in the toolbar to open the module manager. Modules are plain J
 
 | Module | Description |
 |---|---|
+| **Show Levels** | Adds a *levels* input to the toolbar. Enter depth levels (e.g. `0-2,4`) and press Enter or click the button to show only nodes at those depths; ancestors are dimmed. |
 | **Schema Folding** | Adds an *Apply Folding ▶* button to the Schema panel header. Clicking it copies the Schema panel's expand/fold state into the Data panel. |
 
 ## Writing a module
@@ -27,8 +28,8 @@ A module is a JS object literal returned from a self-contained expression:
     .my-button { color: var(--accent); }
   `,
 
-  // Buttons injected into panel header slots
-  // Slots: schema.header.left, schema.header.right, data.header.left, data.header.right
+  // Buttons injected into slots
+  // Slots: toolbar, schema.header.left, schema.header.right, data.header.left, data.header.right
   buttons: {
     'data.header.right': `<button id="myBtn" disabled>Do thing</button>`
   },
@@ -49,6 +50,8 @@ A module is a JS object literal returned from a self-contained expression:
 The `shared` object (`moduleShared`) provides:
 - `shared.schemaNodes` — `Map<path, node>` for the Schema tree
 - `shared.dataNodes` — `Map<path, node>` for the Data tree
+- `shared.activeLevels` — `Set<number> | null` — the currently active depth levels (read/write)
+- `shared.setAllExpanded(nodes, expanded)` — expand or collapse all nodes in a tree and clears `activeLevels`
 - `shared.dataPathToSchemaPath(path)` — converts a data path (e.g. `$[0].name`) to its schema path (`$[].name`)
 - `shared.isAncestorPath(parent, child)` — path ancestry check
 - `shared.postLoad` — array of callbacks invoked at the start of each `loadJson` call
@@ -528,7 +531,7 @@ Filter module adds a live text-filter input to each panel header.
     };
 
     function runSchemaFilter() {
-      setAllExpanded(shared.schemaNodes, true);
+      shared.setAllExpanded(shared.schemaNodes, true);
       var pat     = schemaInput.value;
       var useRe   = self._schemaRe;
       var invalid = useRe && pat && !isValidRe(pat);
@@ -571,7 +574,7 @@ Filter module adds a live text-filter input to each panel header.
     };
 
     function runDataFilter() {
-      setAllExpanded(shared.dataNodes, true);
+      shared.setAllExpanded(shared.dataNodes, true);
       var pat     = dataInput.value;
       var useRe   = self._dataRe;
       var invalid = useRe && pat && !isValidRe(pat);
