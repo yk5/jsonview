@@ -2,7 +2,7 @@
 
 A single-file, zero-dependency JSON viewer that runs in the browser. It renders any JSON file as an interactive tree with a side-by-side schema inference panel.
 
-The live version can be seen in [https://yk5.github.io/jsonview/src/](https://yk5.github.io/jsonview/src/).
+The live version can be seen in [https://yk5.github.io/jsonview/viewer.html](https://yk5.github.io/jsonview/viewer.html).
 
 ## Features
 
@@ -23,13 +23,29 @@ The live version can be seen in [https://yk5.github.io/jsonview/src/](https://yk
 
 ## Usage
 
-Open `src/index.html` directly in a browser — no build step or server required.
+### Online
+
+The live version is at [https://yk5.github.io/jsonview/viewer.html](https://yk5.github.io/jsonview/viewer.html).
+
+### Local development
+
+```bash
+npm install
+npm run build       # produces src/viewer.html
+npm run dev         # rebuild on every save (watch mode)
+npm run typecheck   # TypeScript type checking
+npm test            # run unit tests
+```
+
+Open `src/viewer.html` in a browser after building.
+
+### Using the viewer
 
 1. Click **Load** to open a `.json` file, or click **Edit** to paste JSON manually.
 2. Browse the **Schema** panel to see the inferred structure of the data.
 3. Browse the **Data** panel to explore actual values.
 4. Use **Fold All** / **Expand All** to control tree visibility.
-5. Type a level range (e.g. `0-2`) in the input and click **Set Levels** to focus on specific depths.
+5. Type a level range (e.g. `0-2,4`) in the levels input and press Enter or click **levels** to filter by depth.
 
 ## Type colors
 

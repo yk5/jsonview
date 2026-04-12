@@ -32,6 +32,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build index.html
+        run: npm run build
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
@@ -40,7 +58,7 @@ jobs:
           mkdir -p _site
           cp README.md _site/
           cp -r docs/ _site/
-          cp -r src/ _site/
+          cp src/viewer.html _site/viewer.html
 
       - name: Build from the staged site by Jekyll
         uses: actions/jekyll-build-pages@v1
