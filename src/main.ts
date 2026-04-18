@@ -66,14 +66,6 @@ function init(): void {
   registerModule(SHOW_LEVELS_MODULE_CODE);
   registerModule(SCHEMA_FOLDING_CODE);
 
-  // ── Toolbar controls ──
-  function enableControls(): void {
-    [btnFold, btnExpand].forEach((el) => (el.disabled = false));
-    document.querySelectorAll("[id^='mod-slot-'] button").forEach(
-      (el) => ((el as HTMLButtonElement).disabled = false),
-    );
-  }
-
   btnFold.addEventListener("click", () => {
     setAllExpanded(schemaNodes, false, (v) => { activeLevels = v; });
     setAllExpanded(dataNodes,   false, (v) => { activeLevels = v; });
@@ -93,7 +85,6 @@ function init(): void {
         const json = JSON.parse(reader.result as string);
         currentJson = json;
         loadJson(json, schemaTree, dataTree);
-        enableControls();
       } catch {
         schemaTree.innerHTML = '<div class="empty-state">Invalid JSON</div>';
         dataTree.innerHTML   = '<div class="empty-state">Invalid JSON</div>';
@@ -167,7 +158,6 @@ function init(): void {
         const json = JSON.parse(editorArea.value);
         currentJson = json;
         loadJson(json, schemaTree, dataTree);
-        enableControls();
         closeEditor();
       } catch (err) {
         editorError.textContent = "⚠ " + (err as Error).message;

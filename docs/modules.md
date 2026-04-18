@@ -2,7 +2,7 @@
 
 Click **Modules** in the toolbar to open the module manager. Modules are plain JavaScript objects that can inject buttons, styles, and logic into the viewer at runtime.
 
-## Built-in module
+## Built-in modules
 
 | Module | Description |
 |---|---|
@@ -31,7 +31,7 @@ A module is a JS object literal returned from a self-contained expression:
   // Buttons injected into slots
   // Slots: toolbar, schema.header.left, schema.header.right, data.header.left, data.header.right
   buttons: {
-    'data.header.right': `<button id="myBtn" disabled>Do thing</button>`
+    'data.header.right': `<button id="myBtn">Do thing</button>`
   },
 
   // Called when the module is enabled; wire up event listeners here
@@ -86,7 +86,7 @@ Buttons:
 
 Highlights are automatically cleared on every new <code>loadJson</code> call.
 
-<details>
+<details markdown="1">
 <summary>Module code (click to expand then copy/paste as a new module in the Modules popup):</summary>
 
 ```js
@@ -165,16 +165,16 @@ Highlights are automatically cleared on every new <code>loadJson</code> call.
   `,
   buttons: {
     'schema.header.right': `
-      <button class="btn-clear-hl"  id="btnSchemaClearHl"    disabled title="Clear schema highlights">&#x2715;</button>
+      <button class="btn-clear-hl"  id="btnSchemaClearHl"    title="Clear schema highlights">&#x2715;</button>
       <span   class="hl-label hl-label-schema">Highlights</span>
-      <button class="btn-hl-icon"   id="btnSchemaHlToSchema" disabled title="Expand highlighted in Schema panel">&#x25BC;</button>
-      <button class="btn-hl-icon"   id="btnSchemaHlToData"   disabled title="Expand highlighted in Data panel">&#x25B6;</button>
+      <button class="btn-hl-icon"   id="btnSchemaHlToSchema" title="Expand highlighted in Schema panel">&#x25BC;</button>
+      <button class="btn-hl-icon"   id="btnSchemaHlToData"   title="Expand highlighted in Data panel">&#x25B6;</button>
     `,
     'data.header.left': `
-      <button class="btn-hl-icon-data" id="btnDataHlToSchema" disabled title="Expand highlighted in Schema panel">&#x25C4;</button>
-      <button class="btn-hl-icon-data" id="btnDataHlToData"   disabled title="Expand highlighted in Data panel">&#x25BC;</button>
+      <button class="btn-hl-icon-data" id="btnDataHlToSchema" title="Expand highlighted in Schema panel">&#x25C4;</button>
+      <button class="btn-hl-icon-data" id="btnDataHlToData"   title="Expand highlighted in Data panel">&#x25BC;</button>
       <span   class="hl-label hl-label-data">Highlights</span>
-      <button class="btn-clear-hl"     id="btnDataClearHl"    disabled title="Clear data highlights">&#x2715;</button>
+      <button class="btn-clear-hl"     id="btnDataClearHl"    title="Clear data highlights">&#x2715;</button>
     `
   },
   functions: {
@@ -339,7 +339,7 @@ Filter module adds a live text-filter input to each panel header.
 * Fold/expand state is preserved — the filter hides nodes without collapsing them.
 * Both inputs are cleared automatically on every new `loadJson` call.
 
-<details>
+<details markdown="1">
 <summary>Module code (click to expand then copy/paste as a new module in the Modules popup):</summary>
 
 ```js

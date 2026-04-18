@@ -87,7 +87,6 @@ export function enableModule(id: string): void {
         wrapper.className = "btn-group btn-group--tight";
         wrapper.innerHTML = html;
         parent.appendChild(wrapper);
-        // Buttons start disabled; enableControls() in main.ts enables them after a JSON load.
       }
     }
   }

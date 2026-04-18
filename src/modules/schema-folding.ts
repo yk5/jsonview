@@ -28,7 +28,7 @@ export const SCHEMA_FOLDING_CODE =
   \`,
   buttons: {
     'schema.header.left': \`
-      <button class="btn-apply-schema-folding" id="btnApplySchemaFolding" disabled
+      <button class="btn-apply-schema-folding" id="btnApplySchemaFolding"
         title="Copy the Schema panel's expand/fold state into the Data panel">Apply Folding &#x25B6;</button>
     \`
   },
