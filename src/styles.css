@@ -60,7 +60,12 @@ header h1 {
   letter-spacing: -0.3px;
 }
 
-header h1 span { color: var(--text-dim); font-weight: 400; }
+header h1 span { color: var(--accent); font-weight: 400; }
+
+header h1 a { text-decoration: none; }
+header h1 #ghpage { color: var(--accent); }
+header h1 #githubLink { color: var(--text-dim); }
+header h1 #ghpage:hover, header h1 #githubLink:hover { text-decoration: underline; }
 
 .toolbar {
   display: flex;

@@ -4,6 +4,9 @@ A single-file, zero-dependency JSON viewer that runs in the browser. It renders 
 
 The live version can be seen in [https://yk5.github.io/jsonview/viewer.html](https://yk5.github.io/jsonview/viewer.html).
 
+The GitHub project is [yk5/jsonview](https://github.com/yk5/jsonview)  
+GitHub page is [https://yk5.github.io/jsonview/](https://yk5.github.io/jsonview/)
+
 ## Features
 
 - **Dual-panel view** — Schema panel (inferred structure) alongside a Data panel (actual values)
