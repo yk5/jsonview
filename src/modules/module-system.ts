@@ -24,6 +24,13 @@ export function initModuleShared(opts: ModuleSharedInit): ModuleShared {
     set activeLevels(v)         { opts.setActiveLevels(v); },
     setAllExpanded: (nodes, expanded) =>
       setAllExpanded(nodes, expanded, (v) => opts.setActiveLevels(v)),
+    setFolded(node, folded) {
+      node.childrenEl?.classList.toggle("hidden", folded);
+      node.el.querySelector(".toggle")?.classList.toggle("folded", folded);
+    },
+    setDimmed(node, dimmed) {
+      node.el.classList.toggle("dimmed", dimmed);
+    },
     dataPathToSchemaPath,
     isAncestorPath,
     postLoad: [],
@@ -84,7 +91,7 @@ export function enableModule(id: string): void {
       if (parent) {
         const wrapper = document.createElement("div");
         wrapper.id = "mod-slot-" + id + "-" + slot.replace(/\./g, "-");
-        wrapper.className = "btn-group btn-group--tight";
+        wrapper.className = "btn-group--tight";
         wrapper.innerHTML = html;
         parent.appendChild(wrapper);
       }

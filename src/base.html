@@ -24,8 +24,8 @@
       <input type="file" id="fileInput" accept=".json,application/json">
     </label>
     <button id="btnEdit">Edit</button>
-    <button id="btnFold" style="white-space:normal;line-height:1.3;text-align:center;">Fold all</button>
-    <button id="btnExpand" style="white-space:normal;line-height:1.3;text-align:center;">Expand all</button>
+    <button id="btnFold">Fold all</button>
+    <button id="btnExpand">Expand all</button>
   </div>
 </header>
 
@@ -59,7 +59,7 @@
       <span id="editorTitle">Edit JSON</span>
       <div class="modal-actions">
         <button id="btnFormat">Format</button>
-        <button id="btnApply" class="btn-apply">Apply</button>
+        <button id="btnApply">Apply</button>
         <button id="btnCancel">Cancel</button>
       </div>
     </div>
@@ -74,7 +74,12 @@
 <div class="modal-overlay" id="modulesOverlay">
   <div class="modal modules-modal">
     <div class="modal-bar">
-      <span>Modules</span>
+      <div class="modal-title">
+        <span>Modules</span>
+        <a id="btnModulesHelp" class="modules-help-link"
+           href="https://yk5.github.io/jsonview/docs/modules.html"
+           target="_blank" rel="noopener">[How to Create a Module]</a>
+      </div>
       <div class="modal-actions">
         <button id="btnAddModule">+ Add</button>
         <button id="btnModulesClose">Close</button>

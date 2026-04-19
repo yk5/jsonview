@@ -42,6 +42,32 @@ function loadJson(json: unknown, schemaContainer: HTMLElement, dataContainer: HT
   renderDataTree(dataContainer, json, dataNodes);
 }
 
+// Wires line-number gutter, Tab insertion, scroll sync, and Ctrl/Cmd+Enter apply
+// onto a textarea. Returns the refresh function to call after external value changes.
+function attachCodeEditor(
+  area: HTMLTextAreaElement,
+  lines: HTMLElement,
+  onApply: () => void,
+): () => void {
+  const update = (): void => {
+    const count = area.value.split("\n").length;
+    lines.innerHTML = Array.from({ length: count }, (_, i) => `<div>${i + 1}</div>`).join("");
+  };
+  area.addEventListener("input", update);
+  area.addEventListener("scroll", () => { lines.scrollTop = area.scrollTop; });
+  area.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const s = area.selectionStart;
+      area.value = area.value.substring(0, s) + "  " + area.value.substring(area.selectionEnd);
+      area.selectionStart = area.selectionEnd = s + 2;
+      update();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") onApply();
+  });
+  return update;
+}
+
 // ── Init ──────────────────────────────────────────────
 function init(): void {
   const fileInput   = document.getElementById("fileInput") as HTMLInputElement;
@@ -96,10 +122,7 @@ function init(): void {
   // ── Editor modal ──
   let editorMode: string | null = null; // null = JSON, string = module id
 
-  function updateLineNumbers(): void {
-    const count = editorArea.value.split("\n").length;
-    editorLines.innerHTML = Array.from({ length: count }, (_, i) => `<div>${i + 1}</div>`).join("");
-  }
+  const updateLineNumbers = attachCodeEditor(editorArea, editorLines, () => btnApply.click());
 
   function openEditor(mode: string | null): void {
     editorMode = mode;
@@ -129,9 +152,6 @@ function init(): void {
   btnEdit.addEventListener("click",   () => openEditor(null));
   btnCancel.addEventListener("click", closeEditor);
   overlay.addEventListener("click",   (e) => { if (e.target === overlay) closeEditor(); });
-
-  editorArea.addEventListener("input",  updateLineNumbers);
-  editorArea.addEventListener("scroll", () => { editorLines.scrollTop = editorArea.scrollTop; });
 
   btnFormat.addEventListener("click", () => {
     if (editorMode !== null) return;
@@ -163,18 +183,6 @@ function init(): void {
         editorError.textContent = "⚠ " + (err as Error).message;
       }
     }
-  });
-
-  editorArea.addEventListener("keydown", (e) => {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const s = editorArea.selectionStart;
-      editorArea.value =
-        editorArea.value.substring(0, s) + "  " + editorArea.value.substring(editorArea.selectionEnd);
-      editorArea.selectionStart = editorArea.selectionEnd = s + 2;
-      updateLineNumbers();
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") btnApply.click();
   });
 
   // ── Modules popup ──
@@ -213,7 +221,7 @@ function init(): void {
             <textarea class="editor-area" spellcheck="false"></textarea>
           </div>
           <div class="module-editor-actions">
-            <button class="btn-apply btn-module-apply">Apply</button>
+            <button class="btn-module-apply">Apply</button>
             <button class="btn-module-discard">Discard</button>
           </div>
         </div>`;
@@ -228,10 +236,7 @@ function init(): void {
       const applyBtn   = item.querySelector(".btn-module-apply") as HTMLButtonElement;
       const discardBtn = item.querySelector(".btn-module-discard") as HTMLButtonElement;
 
-      function updateLines(): void {
-        const count = textarea.value.split("\n").length;
-        linesDiv.innerHTML = Array.from({ length: count }, (_, i) => `<div>${i + 1}</div>`).join("");
-      }
+      const updateLines = attachCodeEditor(textarea, linesDiv, () => applyBtn.click());
 
       toggle.addEventListener("change", () => {
         if (toggle.checked) enableModule(id);
@@ -257,21 +262,6 @@ function init(): void {
         editorDiv.classList.remove("hidden");
         editBtn.textContent = "Close";
         textarea.focus();
-      });
-
-      textarea.addEventListener("input", updateLines);
-      textarea.addEventListener("scroll", () => { linesDiv.scrollTop = textarea.scrollTop; });
-
-      textarea.addEventListener("keydown", (e) => {
-        if (e.key === "Tab") {
-          e.preventDefault();
-          const s = textarea.selectionStart;
-          textarea.value =
-            textarea.value.substring(0, s) + "  " + textarea.value.substring(textarea.selectionEnd);
-          textarea.selectionStart = textarea.selectionEnd = s + 2;
-          updateLines();
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") applyBtn.click();
       });
 
       applyBtn.addEventListener("click", () => {

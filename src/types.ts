@@ -45,6 +45,8 @@ export interface ModuleShared {
   readonly dataNodes: Map<string, TreeNode>;
   activeLevels: Set<number> | null;
   setAllExpanded: (nodes: Map<string, TreeNode>, expanded: boolean) => void;
+  setFolded: (node: TreeNode, folded: boolean) => void;
+  setDimmed: (node: TreeNode, dimmed: boolean) => void;
   dataPathToSchemaPath: (path: string) => string;
   isAncestorPath: (parent: string, child: string) => boolean;
   postLoad: Array<() => void>;

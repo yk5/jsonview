@@ -50,14 +50,11 @@ export const SHOW_LEVELS_MODULE_CODE =
       nodes.forEach(function(n, path) {
         var isActive   = activePaths.has(path);
         var isAncestor = ancestorPaths.has(path);
-        n.el.classList.toggle('dimmed', isAncestor && !isActive);
-        if (n.childrenEl) {
-          n.childrenEl.classList.toggle('hidden', !isAncestor);
-          n.el.querySelector('.toggle')?.classList.toggle('folded', !isAncestor);
-        }
+        this.setDimmed(n, isAncestor && !isActive);
+        if (n.childrenEl) this.setFolded(n, !isAncestor);
         var wrapper = n.el.parentElement;
         if (wrapper?.classList.contains('node')) wrapper.style.display = (isActive || isAncestor) ? '' : 'none';
-      });
+      }.bind(this));
     },
   },
   styles: \`

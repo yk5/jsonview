@@ -153,7 +153,7 @@ export function renderDataTree(
     const unit = type === "array" ? "items" : "keys";
     label += `<span class="bracket">${open}</span><span class="count">${count} ${unit}</span>`;
   } else {
-    const display = type === "string" ? `"${escapeHtml(String(value))}"` : String(value);
+    const display = type === "string" ? `"${escapeHtml(value as string)}"` : String(value);
     label += `<span class="value ${valueClass(type as "string" | "number" | "boolean" | "null")}">${display}</span>`;
   }
 

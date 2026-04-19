@@ -191,10 +191,8 @@ Highlights are automatically cleared on every new <code>loadJson</code> call.
       }.bind(this));
       nodes.forEach(function(n) {
         if (!n.childrenEl) return;
-        var expand = ancestorPaths.has(n.path);
-        n.childrenEl.classList.toggle('hidden', !expand);
-        n.el.querySelector('.toggle')?.classList.toggle('folded', !expand);
-      });
+        this.setFolded(n, !ancestorPaths.has(n.path));
+      }.bind(this));
     },
     clearSchemaHighlights(schemaDom, dataDom) {
       schemaDom = schemaDom || document.getElementById('schemaTree');
@@ -480,17 +478,13 @@ Filter module adds a live text-filter input to each panel header.
       });
       ancestors.forEach(function(path) {
         var n = nodes.get(path);
-        if (n && n.childrenEl) {
-          n.childrenEl.classList.remove('hidden');
-          var toggle = n.el.querySelector('.toggle');
-          if (toggle) toggle.classList.remove('folded');
-        }
+        if (n) shared.setFolded(n, false);
       });
       nodes.forEach(function(n, path) {
         var isMatch    = matched.has(path);
         var isAncestor = ancestors.has(path);
         var visible    = isMatch || isAncestor;
-        n.el.classList.toggle('dimmed', isAncestor && !isMatch);
+        shared.setDimmed(n, isAncestor && !isMatch);
         var wrapper = n.el.parentElement;
         if (wrapper && wrapper.classList.contains('node')) wrapper.style.display = visible ? '' : 'none';
       });

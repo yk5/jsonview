@@ -9,8 +9,7 @@ export const SCHEMA_FOLDING_CODE =
         var sn = this.schemaNodes.get(this.dataPathToSchemaPath(dataPath));
         if (!sn?.childrenEl) return;
         var folded = sn.childrenEl.classList.contains('hidden');
-        dn.childrenEl.classList.toggle('hidden', folded);
-        dn.el.querySelector('.toggle')?.classList.toggle('folded', folded);
+        this.setFolded(dn, folded);
       }.bind(this));
     },
   },
