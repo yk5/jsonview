@@ -66,12 +66,12 @@ function _unregisterFunctions(def: ModuleDef): void {
   }
 }
 
-export function registerModule(codeStr: string): void {
+export function registerModule(codeStr: string, enabled: boolean = false): void {
   const def = evalModuleDef(codeStr);
   const id = def.name;
   _registerFunctions(def);
   modules.set(id, { id, def, codeStr, enabled: false });
-  enableModule(id);
+  if (enabled) enableModule(id);
 }
 
 export function enableModule(id: string): void {

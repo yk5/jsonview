@@ -14,6 +14,7 @@ import {
 } from "./modules/module-system.js";
 import SHOW_LEVELS_MODULE_CODE from "./modules/show-levels.js?raw";
 import SCHEMA_FOLDING_CODE from "./modules/schema-folding.js?raw";
+import CONVERT_PROTOBUF_CODE from "./modules/convert-protobuf.js?raw";
 import BLANK_MODULE_CODE from "./modules/blank-template.js?raw";
 import type { TreeNode } from "./types.js";
 
@@ -89,8 +90,9 @@ function init(): void {
 
   initResizer();
 
-  registerModule(SHOW_LEVELS_MODULE_CODE);
-  registerModule(SCHEMA_FOLDING_CODE);
+  registerModule(SCHEMA_FOLDING_CODE, /*enabled=*/true);
+  registerModule(SHOW_LEVELS_MODULE_CODE, /*enabled=*/false);
+  registerModule(CONVERT_PROTOBUF_CODE, /*enabled=*/false);
 
   btnFold.addEventListener("click", () => {
     setAllExpanded(schemaNodes, false, (v) => { activeLevels = v; });

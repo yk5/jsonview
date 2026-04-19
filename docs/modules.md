@@ -10,6 +10,7 @@ Click **Modules** in the toolbar to open the module manager. Modules are plain J
 |---|---|
 | **Show Levels** | Adds a *levels* input to the toolbar. Enter depth levels (e.g. `0-2,4`) and press Enter or click the button to show only nodes at those depths; ancestors are dimmed. |
 | **Schema Folding** | Adds an *Apply Folding ▶* button to the Schema panel header. Clicking it copies the Schema panel's expand/fold state into the Data panel. |
+| **Protobuf Converter** | Adds a *Protobuf* button to the toolbar. Opens a two-pane editor: paste text proto on the left, click *Convert* (or Ctrl/⌘+Enter) to see the JSON on the right, then *Copy JSON* and paste it into the viewer. |
 
 ## Create a module with an AI agent
 
@@ -103,6 +104,29 @@ Show Levels adds a *levels* input to the toolbar. Enter depth levels (e.g. `0-2,
 
 ```js
 {% include show-levels.js %}
+```
+
+</details>
+
+---
+
+### Protobuf Converter module
+
+Protobuf Converter adds a *Protobuf* button to the toolbar. Clicking it opens a two-pane editor:
+
+* Paste text proto in the left pane.
+* Click **Convert** (or Ctrl/⌘+Enter) to parse it into JSON, shown in the right pane.
+* Click **Copy JSON** to copy the result, then paste it into the viewer's load dialog.
+* The proto input is remembered between opens so you can iterate without re-pasting.
+* Parse errors are shown inline in the right pane with a line number.
+
+The built-in parser handles nested messages (`{}` and `<>` syntax), repeated fields (converted to arrays), quoted strings (including concatenation), booleans, numbers, `null`, `Inf`/`NaN`, extension fields (`[package.Field]`), and `#` comments.
+
+<details markdown="1">
+<summary>Module code (click to expand then copy/paste as a new module in the Modules popup):</summary>
+
+```js
+{% include convert-protobuf.js %}
 ```
 
 </details>
