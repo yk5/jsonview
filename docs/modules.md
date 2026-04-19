@@ -11,6 +11,15 @@ Click **Modules** in the toolbar to open the module manager. Modules are plain J
 | **Show Levels** | Adds a *levels* input to the toolbar. Enter depth levels (e.g. `0-2,4`) and press Enter or click the button to show only nodes at those depths; ancestors are dimmed. |
 | **Schema Folding** | Adds an *Apply Folding ▶* button to the Schema panel header. Clicking it copies the Schema panel's expand/fold state into the Data panel. |
 
+## Create a module with an AI agent
+
+Instead of hand-writing a module, you can ask an AI coding agent (e.g. Claude Code) to do it. This repo ships a skill that teaches the agent the module API, conventions, and constraints:
+
+- Repo view: <https://github.com/yk5/jsonview/blob/main/skills/jsonview-module-creator/SKILL.md>
+- Raw content: <https://raw.githubusercontent.com/yk5/jsonview/main/skills/jsonview-module-creator/SKILL.md>
+
+Add it to your agent as a skill — for example by pointing the agent at the repo file, or fetching the raw URL into your local skills folder — then describe the module you want. The agent will follow the skill and produce a copy-pasteable module object you can drop into the **Modules** popup.
+
 ## Writing a module
 
 A module is a JS object literal returned from a self-contained expression:
