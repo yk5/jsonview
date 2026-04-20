@@ -55,10 +55,11 @@ jobs:
 
       - name: Prepare staging directory
         run: |
-          mkdir -p _site
+          mkdir -p _site/_includes
           cp README.md _site/
-          cp -r docs/ _site/
-          cp src/viewer.html _site/viewer.html
+          cp -r docs/. _site/
+          cp src/viewer.html _site/
+          cp src/modules/*.js _site/_includes/
 
       - name: Build from the staged site by Jekyll
         uses: actions/jekyll-build-pages@v1

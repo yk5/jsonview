@@ -12,9 +12,9 @@ import {
   removeModule,
   applyModuleCode,
 } from "./modules/module-system.js";
-import { SHOW_LEVELS_MODULE_CODE } from "./modules/show-levels.js";
-import { SCHEMA_FOLDING_CODE } from "./modules/schema-folding.js";
-import { BLANK_MODULE_CODE } from "./modules/blank-template.js";
+import SHOW_LEVELS_MODULE_CODE from "./modules/show-levels.js?raw";
+import SCHEMA_FOLDING_CODE from "./modules/schema-folding.js?raw";
+import BLANK_MODULE_CODE from "./modules/blank-template.js?raw";
 import type { TreeNode } from "./types.js";
 
 // ── State ─────────────────────────────────────────────

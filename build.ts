@@ -7,6 +7,20 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const SRC = path.join(__dirname, "src");
 const OUT = path.join(SRC, "viewer.html");
 
+const rawPlugin: esbuild.Plugin = {
+  name: "raw",
+  setup(build) {
+    build.onResolve({ filter: /\?raw$/ }, (args) => ({
+      path: path.resolve(args.resolveDir, args.path.replace(/\?raw$/, "")),
+      namespace: "raw",
+    }));
+    build.onLoad({ filter: /.*/, namespace: "raw" }, async (args) => ({
+      contents: await fs.promises.readFile(args.path, "utf8"),
+      loader: "text",
+    }));
+  },
+};
+
 const watchMode = process.argv.includes("--watch");
 
 async function build(): Promise<void> {
@@ -20,6 +34,7 @@ async function build(): Promise<void> {
     write: false,
     sourcemap: false,
     logLevel: "info",
+    plugins: [rawPlugin],
   });
 
   const js = result.outputFiles[0].text;
@@ -43,7 +58,7 @@ if (watchMode) {
     target: "es2020",
     write: false,
     logLevel: "info",
-    plugins: [
+    plugins: [rawPlugin,
       {
         name: "rebuild-html",
         setup(build) {

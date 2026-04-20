@@ -1,24 +1,4 @@
-// Exported for unit testing
-export function parseLevels(input: string): Set<number> {
-  const levels = new Set<number>();
-  input.split(",").forEach((part) => {
-    const trimmed = part.trim();
-    if (!trimmed) return;
-    const range = trimmed.split("-").map((s) => parseInt(s.trim(), 10));
-    if (range.length === 1 && !isNaN(range[0])) {
-      levels.add(range[0]);
-    } else if (range.length === 2 && !isNaN(range[0]) && !isNaN(range[1])) {
-      for (let i = range[0]; i <= range[1]; i++) levels.add(i);
-    }
-  });
-  return levels;
-}
-
-// The runtime module code string (eval'd by the module system).
-// parseLevels / applyLevels are inlined here so the module is self-contained
-// at runtime, but the exported parseLevels above is used for unit tests.
-export const SHOW_LEVELS_MODULE_CODE =
-`({
+({
   name: 'Show Levels',
   description: 'Filter both panels to show only nodes at specified depth levels (e.g. 0-2,4)',
   functions: {
@@ -57,7 +37,7 @@ export const SHOW_LEVELS_MODULE_CODE =
       }.bind(this));
     },
   },
-  styles: \`
+  styles: `
     .level-group {
       display: flex;
       align-items: stretch;
@@ -83,14 +63,14 @@ export const SHOW_LEVELS_MODULE_CODE =
     }
     .level-group:focus-within .level-input,
     .level-group:focus-within .btn-levels { border-color: var(--accent-border); }
-  \`,
+  `,
   buttons: {
-    'toolbar': \`
+    'toolbar': `
       <div class="level-group">
         <input class="level-input" id="levelInput" placeholder="e.g. 0-2,4">
         <button id="btnLevels" class="btn-levels">levels</button>
       </div>
-    \`
+    `
   },
   init(schemaDom, dataDom, shared) {
     this._shared = shared;
@@ -115,4 +95,4 @@ export const SHOW_LEVELS_MODULE_CODE =
     if (arr) { var i = arr.indexOf(this._postLoadFn); if (i !== -1) arr.splice(i, 1); }
     delete this._shared; delete this._input; delete this._btn;
   },
-})`;
+})

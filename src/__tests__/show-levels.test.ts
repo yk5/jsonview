@@ -1,4 +1,20 @@
-import { parseLevels } from "../modules/show-levels";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { evalModuleDef } from "../modules/module-system";
+
+const code = fs.readFileSync(
+  path.resolve(__dirname, "../modules/show-levels.js"),
+  "utf8"
+);
+
+const def = evalModuleDef(code);
+const parseLevels = def.functions!.parseLevels as (input: string) => Set<number>;
+
+describe("show-levels.js", () => {
+  it("is a valid JS module object with the correct name", () => {
+    expect(def.name).toBe("Show Levels");
+  });
+});
 
 describe("parseLevels", () => {
   it("parses a single level", () => {

@@ -1,5 +1,4 @@
-export const SCHEMA_FOLDING_CODE =
-`({
+({
   name: 'Schema Folding',
   description: 'Apply Folding copies the Schema panel expand/fold state into the Data panel',
   functions: {
@@ -13,7 +12,7 @@ export const SCHEMA_FOLDING_CODE =
       }.bind(this));
     },
   },
-  styles: \`
+  styles: `
     .btn-apply-schema-folding {
       padding: 3px 9px;
       font-size: 11px;
@@ -24,12 +23,12 @@ export const SCHEMA_FOLDING_CODE =
       background: var(--accent-dim);
     }
     .btn-apply-schema-folding:hover { background: var(--accent-hover); }
-  \`,
+  `,
   buttons: {
-    'schema.header.left': \`
+    'schema.header.left': `
       <button class="btn-apply-schema-folding" id="btnApplySchemaFolding"
         title="Copy the Schema panel's expand/fold state into the Data panel">Apply Folding &#x25B6;</button>
-    \`
+    `
   },
   init(schemaDom, dataDom, shared) {
     this._handler = () => shared.applySchemaFoldingToData();
@@ -38,4 +37,4 @@ export const SCHEMA_FOLDING_CODE =
   destroy() {
     document.getElementById('btnApplySchemaFolding')?.removeEventListener('click', this._handler);
   }
-})`;
+})

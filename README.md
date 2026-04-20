@@ -20,7 +20,7 @@ GitHub page is [https://yk5.github.io/jsonview/](https://yk5.github.io/jsonview/
   - Inline parse error display
   - `Tab` key indentation support
   - `Ctrl`/`Cmd` + `Enter` to apply
-- **Module system** — Extend the viewer with custom JavaScript modules (see [Modules](/docs/modules.md))
+- **Module system** — Extend the viewer with custom JavaScript modules (see [Modules](https://yk5.github.io/jsonview/modules.html))
 - **Resizable panels** — Drag the divider between Schema and Data panels
 - **Dark theme** — Dark UI with syntax-colored type tags (string, number, boolean, null, object, array)
 
