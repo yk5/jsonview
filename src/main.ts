@@ -69,6 +69,29 @@ function attachCodeEditor(
   return update;
 }
 
+// ── localStorage persistence (user modules only) ──────
+const STORAGE_KEY = "jsonview:user-modules";
+
+function saveUserModules(builtinIds: Set<string>): void {
+  try {
+    const data = Array.from(modules.entries())
+      .filter(([id]) => !builtinIds.has(id))
+      .map(([id, mod]) => ({ id, codeStr: mod.codeStr, enabled: mod.enabled }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch { /* storage unavailable */ }
+}
+
+function loadUserModules(): void {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data: Array<{ id: string; codeStr: string; enabled: boolean }> = JSON.parse(raw);
+    for (const entry of data) {
+      if (!modules.has(entry.id)) registerModule(entry.codeStr, entry.enabled);
+    }
+  } catch { /* corrupted storage */ }
+}
+
 // ── Init ──────────────────────────────────────────────
 function init(): void {
   const fileInput   = document.getElementById("fileInput") as HTMLInputElement;
@@ -93,6 +116,10 @@ function init(): void {
   registerModule(SCHEMA_FOLDING_CODE, /*enabled=*/true);
   registerModule(SHOW_LEVELS_MODULE_CODE, /*enabled=*/false);
   registerModule(CONVERT_PROTOBUF_CODE, /*enabled=*/false);
+
+  const BUILTIN_IDS = new Set(modules.keys());
+  loadUserModules();
+  const save = () => saveUserModules(BUILTIN_IDS);
 
   btnFold.addEventListener("click", () => {
     setAllExpanded(schemaNodes, false, (v) => { activeLevels = v; });
@@ -188,11 +215,12 @@ function init(): void {
   });
 
   // ── Modules popup ──
-  const modulesOverlay  = document.getElementById("modulesOverlay") as HTMLElement;
-  const modulesList     = document.getElementById("modulesList") as HTMLElement;
-  const btnModules      = document.getElementById("btnModules") as HTMLButtonElement;
-  const btnModulesClose = document.getElementById("btnModulesClose") as HTMLButtonElement;
-  const btnAddModule    = document.getElementById("btnAddModule") as HTMLButtonElement;
+  const modulesOverlay   = document.getElementById("modulesOverlay") as HTMLElement;
+  const modulesList      = document.getElementById("modulesList") as HTMLElement;
+  const btnModules       = document.getElementById("btnModules") as HTMLButtonElement;
+  const btnModulesClose  = document.getElementById("btnModulesClose") as HTMLButtonElement;
+  const btnAddModule     = document.getElementById("btnAddModule") as HTMLButtonElement;
+  const btnResetModules  = document.getElementById("btnResetModules") as HTMLButtonElement;
 
   function buildModulesList(): void {
     modulesList.innerHTML = "";
@@ -240,15 +268,22 @@ function init(): void {
 
       const updateLines = attachCodeEditor(textarea, linesDiv, () => applyBtn.click());
 
+      if (BUILTIN_IDS.has(id)) {
+        editBtn.disabled = true;
+        removeBtn.disabled = true;
+      }
+
       toggle.addEventListener("change", () => {
         if (toggle.checked) enableModule(id);
         else disableModule(id);
+        if (!BUILTIN_IDS.has(id)) save();
         buildModulesList();
       });
 
       removeBtn.addEventListener("click", () => {
         if (!confirm(`Remove module "${mod.def.name || id}"?`)) return;
         removeModule(id);
+        save();
         buildModulesList();
       });
 
@@ -271,6 +306,7 @@ function init(): void {
           applyModuleCode(id, textarea.value);
           errDiv.textContent = "";
           textarea.value = modules.get(id)?.codeStr || textarea.value;
+          save();
           buildModulesList();
         } catch (err) {
           errDiv.textContent = "⚠ " + (err as Error).message;
@@ -295,6 +331,15 @@ function init(): void {
   });
 
   btnModulesClose.addEventListener("click", () => modulesOverlay.classList.remove("open"));
+
+  btnResetModules.addEventListener("click", () => {
+    if (!confirm("Remove all user-added modules? Built-in modules are unaffected.")) return;
+    Array.from(modules.keys())
+      .filter((id) => !BUILTIN_IDS.has(id))
+      .forEach((id) => removeModule(id));
+    localStorage.removeItem(STORAGE_KEY);
+    buildModulesList();
+  });
   modulesOverlay.addEventListener("click", (e) => {
     if (e.target === modulesOverlay) modulesOverlay.classList.remove("open");
   });
@@ -303,6 +348,7 @@ function init(): void {
     const id = "Module_" + Date.now();
     const def = evalModuleDef(BLANK_MODULE_CODE);
     modules.set(id, { id, def, codeStr: BLANK_MODULE_CODE, enabled: false });
+    save();
     buildModulesList();
     const newItem = modulesList.querySelector(`[data-module-id="${id}"]`);
     (newItem?.querySelector(".btn-module-edit") as HTMLButtonElement | null)?.click();
