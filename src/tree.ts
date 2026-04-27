@@ -180,6 +180,19 @@ export function renderDataTree(
     row.addEventListener("click", (e) => {
       if (!e.ctrlKey && !e.metaKey) { e.stopPropagation(); toggleNode(toggleSpan, cd); }
     });
+    row.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      const expand = cd.classList.contains("hidden");
+      const subtreeRows = [row, ...Array.from(cd.querySelectorAll<HTMLElement>(".node-row[data-container='1']"))];
+      for (const r of subtreeRows) {
+        const toggle = r.querySelector<HTMLElement>(".toggle");
+        const children = r.parentElement?.querySelector<HTMLElement>(":scope > .children");
+        if (toggle && children) {
+          children.classList.toggle("hidden", !expand);
+          toggle.classList.toggle("folded", !expand);
+        }
+      }
+    });
   }
 
   dataNodes.set(path, { el: row, childrenEl: childrenDiv, path, depth, isContainer });
